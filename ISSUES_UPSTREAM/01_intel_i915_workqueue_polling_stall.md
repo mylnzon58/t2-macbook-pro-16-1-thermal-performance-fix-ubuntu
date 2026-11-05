@@ -2,7 +2,7 @@
 
 ## Affected Hardware
 * **Model:** Apple MacBookPro16,1 (A2141, 16-inch 2019)
-* **CPU:** Intel Core i7-9750H / i9-9880H (Intel UHD Graphics 630)
+* **CPU:** Intel Core i7-9750H  (Intel UHD Graphics 630)
 * **dGPU:** AMD Radeon Pro 5300M / 5500M
 * **Kernel:** 7.x-t2-noble (Ubuntu 24.04 LTS)
 

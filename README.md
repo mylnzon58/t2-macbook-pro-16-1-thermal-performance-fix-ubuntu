@@ -3,7 +3,7 @@
 [![Ubuntu 24.04 LTS](https://img.shields.io/badge/Ubuntu-24.04_LTS_(Noble)-E95420?logo=ubuntu&logoColor=white)](#)
 [![Linux Kernel T2](https://img.shields.io/badge/Kernel-linux--t2_(v7.x)-00B4D8?logo=linux&logoColor=white)](#)
 [![Hardware](https://img.shields.io/badge/Apple_T2-MacBookPro16%2C1_(A2141)-111827?logo=apple&logoColor=white)](#)
-[![Intel Core i7/i9](https://img.shields.io/badge/CPU-Intel_Coffee_Lake_Refresh-0071C5?logo=intel&logoColor=white)](#)
+[![Intel Core i7-9750H (6 Cores / 12 Threads)](https://img.shields.io/badge/CPU-Intel_Core_i7--9750H_(6C%2F12T)-0071C5?logo=intel&logoColor=white)](#)
 [![AMD Radeon Pro](https://img.shields.io/badge/GPU-AMD_Radeon_Pro_5300M%2F5500M-ED1C24?logo=amd&logoColor=white)](#)
 [![Author](https://img.shields.io/badge/Author-Juan_Monz%C3%B3n_(@mylnzon58)-10B981?logo=github&logoColor=white)](https://github.com/mylnzon58)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Juan_Monz%C3%B3n-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/juan-m-97b85681/)

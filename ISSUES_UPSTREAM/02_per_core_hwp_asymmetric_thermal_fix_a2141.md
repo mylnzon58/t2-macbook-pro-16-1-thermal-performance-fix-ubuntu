@@ -2,7 +2,7 @@
 
 ## Target Hardware
 * **Model:** MacBookPro16,1 (A2141)
-* **Processor:** Intel Core i7-9750H / Core i9
+* **Processor:** Intel Core i7-9750H
 
 ## Problem Overview
 On bare-die mobile Intel chips in the 16" chassis subjected to years of thermal cycling, thermal paste pump-out or spring screw tension variances frequently lead to thermal transfer degradation predominantly on **Core 0**.
