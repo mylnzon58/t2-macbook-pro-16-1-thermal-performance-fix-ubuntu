@@ -1,0 +1,11 @@
+[Unit]
+Description=MacBook Pro A2141 Thermal, Power, GPU and Memory Tuning
+After=multi-user.target thermald.service power-profiles-daemon.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/macbook-a2141-tuning.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

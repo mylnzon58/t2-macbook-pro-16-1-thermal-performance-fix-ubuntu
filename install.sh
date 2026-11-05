@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+echo "=========================================================================="
+echo " MacBook Pro 16,1 (A2141) Thermal & Performance Kernel Tuning Installer"
+echo " Author: Juan Monzón (@mylnzon58)"
+echo "=========================================================================="
+
+if [ "$EUID" -ne 0 ]; then
+  echo "[-] Por favor, ejecuta este script como root: sudo ./install.sh"
+  exit 1
+fi
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+echo "[+] 1. Copiando script de optimización a /usr/local/sbin/..."
+cp "$SCRIPT_DIR/config/macbook-a2141-tuning.sh" /usr/local/sbin/macbook-a2141-tuning.sh
+chmod +x /usr/local/sbin/macbook-a2141-tuning.sh
+
+echo "[+] 2. Configurando servicio persistente systemd..."
+cp "$SCRIPT_DIR/config/macbook-a2141-tuning.service" /etc/systemd/system/macbook-a2141-tuning.service
+systemctl daemon-reload
+systemctl enable --now macbook-a2141-tuning.service
+
+echo "[+] 3. Configurando optimización de memoria (swappiness=15)..."
+cp "$SCRIPT_DIR/config/99-a2141-memory.conf" /etc/sysctl.d/99-a2141-memory.conf
+sysctl -p /etc/sysctl.d/99-a2141-memory.conf
+
+echo "[+] 4. Configurando regla udev para AMD Radeon Pro..."
+cp "$SCRIPT_DIR/config/30-amdgpu-pm.rules" /etc/udev/rules.d/30-amdgpu-pm.rules
+udevadm control --reload-rules || true
+
+echo "[+] 5. Ejecutando sintonización en vivo..."
+/usr/local/sbin/macbook-a2141-tuning.sh
+
+echo "=========================================================================="
+echo " [+] ¡Instalación completada con éxito!"
+echo " Tu MacBook Pro 16,1 ahora corre con Turbo Asimétrico por Núcleo (4.5 GHz)"
+echo " y el Core 0 protegido contra thermal throttling."
+echo "=========================================================================="

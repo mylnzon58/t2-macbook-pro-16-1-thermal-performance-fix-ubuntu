@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>T2-THERMAL(8) — MacBookPro16,1 (A2141) High-Performance Kernel & Per-Core Thermal Tuning on Ubuntu 24.04 LTS</title>
+  <meta name="description" content="Análisis de causa raíz y optimización de kernel para solucionar el estrangulamiento térmico (thermal throttling) y desbloquear Turbo Asimétrico (4.5 GHz) en el MacBook Pro 16,1 (2019, A2141) con chip Apple T2 en Ubuntu 24.04 LTS. Por Juan Monzón (@mylnzon58)." />
+  <meta name="keywords" content="MacBookPro16,1 Ubuntu 24.04 thermal fix, MacBook Pro 16 2019 A2141 overheating Linux, Apple T2 thermal throttling fix, intel_pstate per core HWP Ubuntu, amdgpu power_dpm_force_performance_level auto, i915 workqueue output_poll_execute hogged CPU fix, zswap lz4 Ubuntu 24.04, Juan Monzon, mylnzon58" />
+  <meta name="author" content="Juan Monzón (mylnzon58@gmail.com)" />
+  <meta name="robots" content="index, follow" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #121314;
+      --bg-card: #1c1d1f;
+      --bg-terminal: #0c0d0e;
+      --accent-orange: #e95420;
+      --accent-green: #10b981;
+      --accent-cyan: #00b4d8;
+      --accent-purple: #77216f;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border: #2d2f33;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: "Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+    header {
+      background: linear-gradient(135deg, #1f141a 0%, #17181c 100%);
+      border-bottom: 2px solid var(--accent-orange);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+    h1 { font-size: 2.2rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .subtitle { font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 20px; }
+    .badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 25px; }
+    .badge {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: "Ubuntu Mono", monospace;
+      color: var(--text-main);
+    }
+    .badge.orange { border-color: var(--accent-orange); color: var(--accent-orange); }
+    .badge.green { border-color: var(--accent-green); color: var(--accent-green); }
+    .badge.cyan { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    
+    .author-card {
+      background: rgba(233, 84, 32, 0.08);
+      border: 1px solid rgba(233, 84, 32, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 25px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .author-info h3 { font-size: 1.05rem; color: #fff; }
+    .author-info p { font-size: 0.9rem; color: var(--text-muted); }
+    .links a {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-tea { background: #ff813f; color: #fff; }
+    .btn-gh { background: #24292e; color: #fff; border: 1px solid #444; }
+    .btn-ln { background: #0a66c2; color: #fff; }
+
+    section { margin: 40px 0; }
+    h2 { font-size: 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 18px; }
+    h3 { font-size: 1.2rem; color: var(--accent-orange); margin: 20px 0 10px; }
+    p { margin-bottom: 14px; color: #d1d5db; }
+    ul { margin-left: 20px; margin-bottom: 16px; color: #d1d5db; }
+    li { margin-bottom: 6px; }
+
+    .story-box {
+      background: var(--bg-card);
+      border-left: 4px solid var(--accent-cyan);
+      border-radius: 0 8px 8px 0;
+      padding: 20px;
+      margin: 25px 0;
+      font-style: normal;
+    }
+    .story-box blockquote { font-size: 1.05rem; line-height: 1.7; color: #f3f4f6; }
+    .story-box cite { display: block; margin-top: 10px; font-size: 0.88rem; color: var(--accent-cyan); font-weight: 600; }
+
+    .terminal {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: "Ubuntu Mono", monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 15px 0;
+      color: #38bdf8;
+      position: relative;
+    }
+    .terminal pre { white-space: pre-wrap; word-break: break-all; margin: 0; }
+    .terminal .prompt { color: #f43f5e; user-select: none; }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #2d2f33;
+      border: none;
+      color: #e5e7eb;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: var(--accent-orange); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.92rem;
+      background: var(--bg-card);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #26282b; color: #fff; font-weight: 600; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .good { color: var(--accent-green); font-weight: bold; }
+    .bad { color: #f43f5e; }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>MacBook Pro 16,1 (A2141) Thermal & Performance Kernel Tuning</h1>
+    <div class="subtitle">Desbloqueo de Turbo Asimétrico (4.5 GHz) y Reparación de Estrangulamiento Térmico en Ubuntu 24.04 LTS</div>
+    <div class="badges">
+      <span class="badge orange">Ubuntu 24.04 LTS (Noble)</span>
+      <span class="badge cyan">Linux Kernel T2 (v7.x)</span>
+      <span class="badge">Apple T2 (A2141)</span>
+      <span class="badge">Intel Core i7-9750H</span>
+      <span class="badge">AMD Radeon Pro 5300M</span>
+      <span class="badge green">Per-Core HWP Asymmetric Tuning</span>
+    </div>
+
+    <div class="author-card">
+      <div class="author-info">
+        <h3>Desarrollado y Mantenido por Juan Monzón (@mylnzon58)</h3>
+        <p>AI Product | Full Stack Developer | Hardware & Digital Products (Argentina)</p>
+      </div>
+      <div class="links">
+        <a class="btn-tea" href="https://tecito.app/juanjoclassic" target="_blank">☕ Donar un Tecito</a>
+        <a class="btn-gh" href="https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu" target="_blank">GitHub Repo</a>
+        <a class="btn-ln" href="https://www.linkedin.com/in/juan-m-97b85681/" target="_blank">LinkedIn</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section id="historia">
+    <h2>📖 La Historia: De la Vieja Escuela de Linux a Revivir el Último Intel Flagship</h2>
+    <div class="story-box">
+      <blockquote>
+        "Vengo de la vieja escuela de Linux: empecé hace años con <strong>Ubuntu 12.04</strong>, pasando por Debian y Linux Mint, y alternando con Windows. Con un esfuerzo gigantesco compré mi sueño en 2019: el <strong>MacBook Pro de 16 pulgadas (A2141)</strong> con el Core i7-9750H y AMD Radeon Pro. Sentía que macOS era un 'Linux refinado'.<br><br>
+        Pero con el paso de los años vi con impotencia cómo la máquina se autodestruía por calor. Tras <strong>5 años de uso real en producción (586 ciclos de batería, 77.3% de salud)</strong>, volví a Linux en Ubuntu 24.04. Cambié la pasta térmica y me topé con la realidad del chip desnudo (<em>bare-die</em>): el Core 0 se disparaba a 100°C en 180 ms.<br><br>
+        En macOS, Apple soluciona esto matando todo el procesador a 800 MHz (<code>kernel_task</code>). Pero en Linux, combinando auditoría de kernel y el uso estratégico de Inteligencia Artificial para acelerar el análisis y desarrollo, logramos programar un <strong>Turbo Asimétrico por Núcleo</strong> que aísla el núcleo caliente y deja los núcleos sanos volando a <strong>4.50 GHz</strong> sin abrir la máquina.<br><br>
+        <strong>Esto vuela, amigos. Siento que mi MacBook Pro volvió a nacer.</strong>"
+      </blockquote>
+      <cite>— Juan Monzón (@mylnzon58)</cite>
+    </div>
+  </section>
+
+  <section id="problemas">
+    <h2>🔍 Diagnóstico de los 8 Problemas de Fábrica Detectados</h2>
+    <ul>
+      <li><strong>1. Asimetría Térmica Física en Core 0:</strong> El Core 0 tocaba 100°C con apenas 22W mientras el Core 4 quedaba en 78°C (21°C de diferencia en el mismo cristal de silicio), generando 35,292 eventos de PROCHOT en 77 minutos.</li>
+      <li><strong>2. Retraso del Chip Apple T2 (~900 ms):</strong> El chip T2 aplica un filtro acústico suave (<code>TC0E</code>). Cuando el SMC nota el pico a los 900 ms, el CPU ya se frenó 100 veces.</li>
+      <li><strong>3. Firmware RAPL Descalibrado:</strong> Apple reporta límites de 100W PL1 / 125W PL2 a un chasis físicamente preparado para disipar 82W combinados.</li>
+      <li><strong>4. VRAM de AMD Radeon Pro trabada en 95 MHz:</strong> La regla <code>power_dpm_force_performance_level="low"</code> congelaba la memoria GDDR6 al conectar monitores externos.</li>
+      <li><strong>5. Micro-bloqueos en el Kernel por Intel i915:</strong> Sondeo fantasma en puertos desconectados retenía hilos del CPU por más de 10 ms (<code>output_poll_execute hogged CPU</code>).</li>
+      <li><strong>6. Cuello de Botella en Disco y zswap apagado:</strong> La única cola del SSD del T2 saturaba el sistema al paginar en disco (17.3 millones de esperas I/O).</li>
+      <li><strong>7. Demonios Huérfanos:</strong> Procesos Java/Gradle consumiendo 1.43 GB de RAM y 15% de CPU continuo en reposo.</li>
+      <li><strong>8. Descarga de Batería Enchufado:</strong> En picos de 100W, cargadores genéricos de 90W colapsan y el SMC chupa corriente de la batería ciclando el litio.</li>
+    </ul>
+  </section>
+
+  <section id="solucion">
+    <h2>⚡ La Solución: Turbo Asimétrico por Núcleo (Per-Core HWP)</h2>
+    <p>En lugar de castigar a todos los núcleos limitándolos parejos a 3.6 GHz, configuramos quirúrgicamente el driver <code>intel_pstate</code> en el kernel:</p>
+    <ul>
+      <li><strong>Core 4 y Core 5 (Sanos):</strong> 100% libres a su tope máximo de fábrica de <strong>4.50 GHz</strong> (balance_performance).</li>
+      <li><strong>Core 1 y Core 2 (Intermedios):</strong> Potencia sostenida a <strong>4.20 GHz</strong> (balance_performance).</li>
+      <li><strong>Core 3 (Transición):</strong> Equilibrado a <strong>3.70 GHz</strong> (balance_power).</li>
+      <li><strong>Core 0 (Comprometido):</strong> Protegido a <strong>3.40 GHz</strong> (balance_power), evitando el salto a 1.35V y eliminando el PROCHOT en todo el chip.</li>
+      <li><strong>Potencia RAPL:</strong> 52W sostenidos (superior a los 45W TDP de fábrica) / 65W pico.</li>
+      <li><strong>TCC Offset a 97°C:</strong> Modulación suave de frecuencia en microsegundos sin choque térmico.</li>
+      <li><strong>GPU AMD en Auto + Perfil 3D Full Screen:</strong> Escalado instantáneo a 750 MHz de VRAM y 1250 MHz de GPU en múltiples pantallas.</li>
+      <li><strong>ZSWAP con LZ4 activo en RAM:</strong> Cero saturación de disco SSD.</li>
+    </ul>
+  </section>
+
+  <section id="benchmarks">
+    <h2>📊 Telemetría Comparativa: Antes vs. Después</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Métrica Evaluada</th>
+          <th>Estado Inicial (Stock)</th>
+          <th>Con Sintonización Asimétrica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Consumo CPU en Reposo (PCPT)</td>
+          <td class="bad">18.88W – 26.05W</td>
+          <td class="good">4.10W</td>
+        </tr>
+        <tr>
+          <td>Temperatura Núcleos en Reposo</td>
+          <td class="bad">74°C – 91°C</td>
+          <td class="good">65°C – 67°C</td>
+        </tr>
+        <tr>
+          <td>Comportamiento en Ráfaga Pesada</td>
+          <td class="bad">Core 0 clava 100°C en 180 ms</td>
+          <td class="good">Core 4/5 a 4.5 GHz; Core 0 clavado en 74°C</td>
+        </tr>
+        <tr>
+          <td>Eventos de Estrangulamiento (PROCHOT)</td>
+          <td class="bad">35,292 en 77 minutos</td>
+          <td class="good">0 eventos (Estabilidad Absoluta)</td>
+        </tr>
+        <tr>
+          <td>Reloj de Memoria VRAM AMD</td>
+          <td class="bad">Clavado en 95 MHz (low)</td>
+          <td class="good">Dinámico 95–750 MHz (Perfil 3D)</td>
+        </tr>
+        <tr>
+          <td>Memoria RAM Libre / Disponible</td>
+          <td class="bad">3.4 GiB disponible</td>
+          <td class="good">6.7 GiB disponible (ZSWAP LZ4)</td>
+        </tr>
+        <tr>
+          <td>Bloqueos de Kernel i915 (>10 ms)</td>
+          <td class="bad">131+ cuelgues registrados</td>
+          <td class="good">0 cuelgues (Paseo de cuadros fluido)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="instalacion">
+    <h2>🚀 Instalación Rápida en 1 Paso</h2>
+    <div class="terminal">
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git && cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu && chmod +x install.sh && sudo ./install.sh')">Copiar</button>
+      <pre><span class="prompt">$ </span>git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git
+<span class="prompt">$ </span>cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu
+<span class="prompt">$ </span>chmod +x install.sh
+<span class="prompt">$ </span>sudo ./install.sh</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>Desarrollado con dedicación técnica por <strong>Juan Monzón (@mylnzon58)</strong>. Distribuido bajo Licencia MIT.</p>
+    <p>Si este fix devolvió a la vida tu MacBook Pro, apoya el proyecto invitándome un café en <a href="https://tecito.app/juanjoclassic" style="color:var(--accent-orange);">tecito.app/juanjoclassic</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>
