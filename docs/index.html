@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>T2-THERMAL(8) — MacBookPro16,1 (A2141) High-Performance Kernel & Per-Core Thermal Tuning on Ubuntu 24.04 LTS</title>
-  <meta name="description" content="Análisis de causa raíz y optimización de kernel para solucionar el estrangulamiento térmico (thermal throttling) y desbloquear Turbo Asimétrico (4.5 GHz) en el MacBook Pro 16,1 (2019, A2141) con chip Apple T2 en Ubuntu 24.04 LTS. Por Juan Monzón (@mylnzon58)." />
+  <meta name="description" content="Root cause analysis and kernel-level optimization to eliminate thermal throttling and unlock Asymmetric Turbo (4.5 GHz) on MacBook Pro 16,1 (2019, A2141) with Apple T2 chip under Ubuntu 24.04 LTS. By Juan Monzón (@mylnzon58)." />
   <meta name="keywords" content="MacBookPro16,1 Ubuntu 24.04 thermal fix, MacBook Pro 16 2019 A2141 overheating Linux, Apple T2 thermal throttling fix, intel_pstate per core HWP Ubuntu, amdgpu power_dpm_force_performance_level auto, i915 workqueue output_poll_execute hogged CPU fix, zswap lz4 Ubuntu 24.04, Juan Monzon, mylnzon58" />
   <meta name="author" content="Juan Monzón (mylnzon58@gmail.com)" />
   <meta name="robots" content="index, follow" />
@@ -39,6 +39,30 @@
       border-bottom: 2px solid var(--accent-orange);
       padding: 40px 20px;
       text-align: center;
+      position: relative;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+      margin-bottom: 20px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 16px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--accent-orange);
+      color: #fff;
     }
     .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
     h1 { font-size: 2.2rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
@@ -154,14 +178,29 @@
       color: var(--text-muted);
       font-size: 0.85rem;
     }
+
+    /* Multi-language toggling */
+    .lang-en { display: none; }
+    body.is-en .lang-es { display: none; }
+    body.is-en .lang-en { display: block; }
+    body.is-en span.lang-en, body.is-en a.lang-en { display: inline-block; }
   </style>
 </head>
 <body>
 
 <header>
   <div class="container">
-    <h1>MacBook Pro 16,1 (A2141) Thermal & Performance Kernel Tuning</h1>
-    <div class="subtitle">Desbloqueo de Turbo Asimétrico (4.5 GHz) y Reparación de Estrangulamiento Térmico en Ubuntu 24.04 LTS</div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="btn-es" onclick="setLang('es')">🇪🇸 Español</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
+
+    <h1 class="lang-es">MacBook Pro 16,1 (A2141) Sintonización Térmica & Rendimiento en Ubuntu 24.04 LTS</h1>
+    <h1 class="lang-en">MacBook Pro 16,1 (A2141) High-Performance Thermal & Kernel Tuning on Ubuntu 24.04 LTS</h1>
+
+    <div class="subtitle lang-es">Desbloqueo de Turbo Asimétrico (4.5 GHz) y Reparación de Estrangulamiento Térmico</div>
+    <div class="subtitle lang-en">Asymmetric Per-Core HWP Turbo (4.5 GHz) & Elimination of Chronic Thermal Throttling</div>
+
     <div class="badges">
       <span class="badge orange">Ubuntu 24.04 LTS (Noble)</span>
       <span class="badge cyan">Linux Kernel T2 (v7.x)</span>
@@ -173,8 +212,9 @@
 
     <div class="author-card">
       <div class="author-info">
-        <h3>Desarrollado y Mantenido por Juan Monzón (@mylnzon58)</h3>
-        <p>AI Product | Full Stack Developer | Hardware & Digital Products (Argentina)</p>
+        <h3>Juan Monzón (@mylnzon58)</h3>
+        <p class="lang-es">AI Product | Full Stack Developer | Hardware & Digital Products (Argentina)</p>
+        <p class="lang-en">AI Product | Full Stack Developer | Hardware & Systems Hacker (Argentina)</p>
       </div>
       <div class="links">
         <a class="btn-tea" href="https://tecito.app/juanjoclassic" target="_blank">☕ Donar un Tecito</a>
@@ -187,117 +227,241 @@
 
 <main class="container">
 
-  <section id="historia">
-    <h2>📖 La Historia: De la Vieja Escuela de Linux a Revivir el Último Intel Flagship</h2>
-    <div class="story-box">
-      <blockquote>
-        "Vengo de la vieja escuela de Linux: empecé hace años con <strong>Ubuntu 12.04</strong>, pasando por Debian y Linux Mint, y alternando con Windows. Con un esfuerzo gigantesco compré mi sueño en 2019: el <strong>MacBook Pro de 16 pulgadas (A2141)</strong> con el Core i7-9750H y AMD Radeon Pro. Sentía que macOS era un 'Linux refinado'.<br><br>
-        Pero con el paso de los años vi con impotencia cómo la máquina se autodestruía por calor. Tras <strong>5 años de uso real en producción (586 ciclos de batería, 77.3% de salud)</strong>, volví a Linux en Ubuntu 24.04. Cambié la pasta térmica y me topé con la realidad del chip desnudo (<em>bare-die</em>): el Core 0 se disparaba a 100°C en 180 ms.<br><br>
-        En macOS, Apple soluciona esto matando todo el procesador a 800 MHz (<code>kernel_task</code>). Pero en Linux, combinando auditoría de kernel y el uso estratégico de Inteligencia Artificial para acelerar el análisis y desarrollo, logramos programar un <strong>Turbo Asimétrico por Núcleo</strong> que aísla el núcleo caliente y deja los núcleos sanos volando a <strong>4.50 GHz</strong> sin abrir la máquina.<br><br>
-        <strong>Esto vuela, amigos. Siento que mi MacBook Pro volvió a nacer.</strong>"
-      </blockquote>
-      <cite>— Juan Monzón (@mylnzon58)</cite>
-    </div>
-  </section>
+  <!-- SPANISH CONTENT -->
+  <div class="lang-es">
+    <section id="historia-es">
+      <h2>📖 La Historia: De la Vieja Escuela de Linux a Revivir el Último Intel Flagship</h2>
+      <div class="story-box">
+        <blockquote>
+          "Vengo de la vieja escuela de Linux: empecé hace años con <strong>Ubuntu 12.04</strong>, pasando por Debian y Linux Mint, y alternando con Windows. Con un esfuerzo gigantesco compré mi sueño en 2019: el <strong>MacBook Pro de 16 pulgadas (A2141)</strong> con el Core i7-9750H y AMD Radeon Pro. Sentía que macOS era un 'Linux refinado'.<br><br>
+          Pero con el paso de los años vi con impotencia cómo la máquina se autodestruía por calor. Tras <strong>5 años de uso real en producción (586 ciclos de batería, 77.3% de salud)</strong>, volví a Linux en Ubuntu 24.04. Cambié la pasta térmica y me topé con la realidad del chip desnudo (<em>bare-die</em>): el Core 0 se disparaba a 100°C en 180 ms.<br><br>
+          En macOS, Apple soluciona esto matando todo el procesador a 800 MHz (<code>kernel_task</code>). Pero en Linux, combinando auditoría de kernel y el uso estratégico de Inteligencia Artificial para acelerar el análisis y desarrollo, logramos programar un <strong>Turbo Asimétrico por Núcleo</strong> que aísla el núcleo caliente y deja los núcleos sanos volando a <strong>4.50 GHz</strong> sin abrir la máquina.<br><br>
+          <strong>Esto vuela, amigos. Siento que mi MacBook Pro volvió a nacer.</strong>"
+        </blockquote>
+        <cite>— Juan Monzón (@mylnzon58)</cite>
+      </div>
+    </section>
 
-  <section id="problemas">
-    <h2>🔍 Diagnóstico de los 8 Problemas de Fábrica Detectados</h2>
-    <ul>
-      <li><strong>1. Asimetría Térmica Física en Core 0:</strong> El Core 0 tocaba 100°C con apenas 22W mientras el Core 4 quedaba en 78°C (21°C de diferencia en el mismo cristal de silicio), generando 35,292 eventos de PROCHOT en 77 minutos.</li>
-      <li><strong>2. Retraso del Chip Apple T2 (~900 ms):</strong> El chip T2 aplica un filtro acústico suave (<code>TC0E</code>). Cuando el SMC nota el pico a los 900 ms, el CPU ya se frenó 100 veces.</li>
-      <li><strong>3. Firmware RAPL Descalibrado:</strong> Apple reporta límites de 100W PL1 / 125W PL2 a un chasis físicamente preparado para disipar 82W combinados.</li>
-      <li><strong>4. VRAM de AMD Radeon Pro trabada en 95 MHz:</strong> La regla <code>power_dpm_force_performance_level="low"</code> congelaba la memoria GDDR6 al conectar monitores externos.</li>
-      <li><strong>5. Micro-bloqueos en el Kernel por Intel i915:</strong> Sondeo fantasma en puertos desconectados retenía hilos del CPU por más de 10 ms (<code>output_poll_execute hogged CPU</code>).</li>
-      <li><strong>6. Cuello de Botella en Disco y zswap apagado:</strong> La única cola del SSD del T2 saturaba el sistema al paginar en disco (17.3 millones de esperas I/O).</li>
-      <li><strong>7. Demonios Huérfanos:</strong> Procesos Java/Gradle consumiendo 1.43 GB de RAM y 15% de CPU continuo en reposo.</li>
-      <li><strong>8. Descarga de Batería Enchufado:</strong> En picos de 100W, cargadores genéricos de 90W colapsan y el SMC chupa corriente de la batería ciclando el litio.</li>
-    </ul>
-  </section>
+    <section id="problemas-es">
+      <h2>🔍 Diagnóstico de los 8 Problemas de Fábrica Detectados</h2>
+      <ul>
+        <li><strong>1. Asimetría Térmica Física en Core 0:</strong> El Core 0 tocaba 100°C con apenas 22W mientras el Core 4 quedaba en 78°C (21°C de diferencia en el mismo cristal de silicio), generando 35,292 eventos de PROCHOT en 77 minutos.</li>
+        <li><strong>2. Retraso del Chip Apple T2 (~900 ms):</strong> El chip T2 aplica un filtro acústico suave (<code>TC0E</code>). Cuando el SMC nota el pico a los 900 ms, el CPU ya se frenó 100 veces.</li>
+        <li><strong>3. Firmware RAPL Descalibrado:</strong> Apple reporta límites de 100W PL1 / 125W PL2 a un chasis físicamente preparado para disipar 82W combinados.</li>
+        <li><strong>4. VRAM de AMD Radeon Pro trabada en 95 MHz:</strong> La regla <code>power_dpm_force_performance_level="low"</code> congelaba la memoria GDDR6 al conectar monitores externos.</li>
+        <li><strong>5. Micro-bloqueos en el Kernel por Intel i915:</strong> Sondeo fantasma en puertos desconectados retenía hilos del CPU por más de 10 ms (<code>output_poll_execute hogged CPU</code>).</li>
+        <li><strong>6. Cuello de Botella en Disco y zswap apagado:</strong> La única cola del SSD del T2 saturaba el sistema al paginar en disco (17.3 millones de esperas I/O).</li>
+        <li><strong>7. Demonios Huérfanos:</strong> Procesos Java/Gradle consumiendo 1.43 GB de RAM y 15% de CPU continuo en reposo.</li>
+        <li><strong>8. Descarga de Batería Enchufado:</strong> En picos de 100W, cargadores genéricos de 90W colapsan y el SMC chupa corriente de la batería ciclando el litio.</li>
+      </ul>
+    </section>
 
-  <section id="solucion">
-    <h2>⚡ La Solución: Turbo Asimétrico por Núcleo (Per-Core HWP)</h2>
-    <p>En lugar de castigar a todos los núcleos limitándolos parejos a 3.6 GHz, configuramos quirúrgicamente el driver <code>intel_pstate</code> en el kernel:</p>
-    <ul>
-      <li><strong>Core 4 y Core 5 (Sanos):</strong> 100% libres a su tope máximo de fábrica de <strong>4.50 GHz</strong> (balance_performance).</li>
-      <li><strong>Core 1 y Core 2 (Intermedios):</strong> Potencia sostenida a <strong>4.20 GHz</strong> (balance_performance).</li>
-      <li><strong>Core 3 (Transición):</strong> Equilibrado a <strong>3.70 GHz</strong> (balance_power).</li>
-      <li><strong>Core 0 (Comprometido):</strong> Protegido a <strong>3.40 GHz</strong> (balance_power), evitando el salto a 1.35V y eliminando el PROCHOT en todo el chip.</li>
-      <li><strong>Potencia RAPL:</strong> 52W sostenidos (superior a los 45W TDP de fábrica) / 65W pico.</li>
-      <li><strong>TCC Offset a 97°C:</strong> Modulación suave de frecuencia en microsegundos sin choque térmico.</li>
-      <li><strong>GPU AMD en Auto + Perfil 3D Full Screen:</strong> Escalado instantáneo a 750 MHz de VRAM y 1250 MHz de GPU en múltiples pantallas.</li>
-      <li><strong>ZSWAP con LZ4 activo en RAM:</strong> Cero saturación de disco SSD.</li>
-    </ul>
-  </section>
+    <section id="solucion-es">
+      <h2>⚡ La Solución: Turbo Asimétrico por Núcleo (Per-Core HWP)</h2>
+      <p>En lugar de castigar a todos los núcleos limitándolos parejos a 3.6 GHz, configuramos quirúrgicamente el driver <code>intel_pstate</code> en el kernel:</p>
+      <ul>
+        <li><strong>Core 4 y Core 5 (Sanos):</strong> 100% libres a su tope máximo de fábrica de <strong>4.50 GHz</strong> (balance_performance).</li>
+        <li><strong>Core 1 y Core 2 (Intermedios):</strong> Potencia sostenida a <strong>4.20 GHz</strong> (balance_performance).</li>
+        <li><strong>Core 3 (Transición):</strong> Equilibrado a <strong>3.70 GHz</strong> (balance_power).</li>
+        <li><strong>Core 0 (Comprometido):</strong> Protegido a <strong>3.40 GHz</strong> (balance_power), evitando el salto a 1.35V y eliminando el PROCHOT en todo el chip.</li>
+        <li><strong>Potencia RAPL:</strong> 52W sostenidos (superior a los 45W TDP de fábrica) / 65W pico.</li>
+        <li><strong>TCC Offset a 97°C:</strong> Modulación suave de frecuencia en microsegundos sin choque térmico.</li>
+        <li><strong>GPU AMD en Auto + Perfil 3D Full Screen:</strong> Escalado instantáneo a 750 MHz de VRAM y 1250 MHz de GPU en múltiples pantallas.</li>
+        <li><strong>ZSWAP con LZ4 activo en RAM:</strong> Cero saturación de disco SSD.</li>
+      </ul>
+    </section>
 
-  <section id="benchmarks">
-    <h2>📊 Telemetría Comparativa: Antes vs. Después</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Métrica Evaluada</th>
-          <th>Estado Inicial (Stock)</th>
-          <th>Con Sintonización Asimétrica</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Consumo CPU en Reposo (PCPT)</td>
-          <td class="bad">18.88W – 26.05W</td>
-          <td class="good">4.10W</td>
-        </tr>
-        <tr>
-          <td>Temperatura Núcleos en Reposo</td>
-          <td class="bad">74°C – 91°C</td>
-          <td class="good">65°C – 67°C</td>
-        </tr>
-        <tr>
-          <td>Comportamiento en Ráfaga Pesada</td>
-          <td class="bad">Core 0 clava 100°C en 180 ms</td>
-          <td class="good">Core 4/5 a 4.5 GHz; Core 0 clavado en 74°C</td>
-        </tr>
-        <tr>
-          <td>Eventos de Estrangulamiento (PROCHOT)</td>
-          <td class="bad">35,292 en 77 minutos</td>
-          <td class="good">0 eventos (Estabilidad Absoluta)</td>
-        </tr>
-        <tr>
-          <td>Reloj de Memoria VRAM AMD</td>
-          <td class="bad">Clavado en 95 MHz (low)</td>
-          <td class="good">Dinámico 95–750 MHz (Perfil 3D)</td>
-        </tr>
-        <tr>
-          <td>Memoria RAM Libre / Disponible</td>
-          <td class="bad">3.4 GiB disponible</td>
-          <td class="good">6.7 GiB disponible (ZSWAP LZ4)</td>
-        </tr>
-        <tr>
-          <td>Bloqueos de Kernel i915 (>10 ms)</td>
-          <td class="bad">131+ cuelgues registrados</td>
-          <td class="good">0 cuelgues (Paseo de cuadros fluido)</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+    <section id="benchmarks-es">
+      <h2>📊 Telemetría Comparativa: Antes vs. Después</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Métrica Evaluada</th>
+            <th>Estado Inicial (Stock)</th>
+            <th>Con Sintonización Asimétrica</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Consumo CPU en Reposo (PCPT)</td>
+            <td class="bad">18.88W – 26.05W</td>
+            <td class="good">4.10W</td>
+          </tr>
+          <tr>
+            <td>Temperatura Núcleos en Reposo</td>
+            <td class="bad">74°C – 91°C</td>
+            <td class="good">65°C – 67°C</td>
+          </tr>
+          <tr>
+            <td>Comportamiento en Ráfaga Pesada</td>
+            <td class="bad">Core 0 clava 100°C en 180 ms</td>
+            <td class="good">Core 4/5 a 4.5 GHz; Core 0 clavado en 74°C</td>
+          </tr>
+          <tr>
+            <td>Eventos de Estrangulamiento (PROCHOT)</td>
+            <td class="bad">35,292 en 77 minutos</td>
+            <td class="good">0 eventos (Estabilidad Absoluta)</td>
+          </tr>
+          <tr>
+            <td>Reloj de Memoria VRAM AMD</td>
+            <td class="bad">Clavado en 95 MHz (low)</td>
+            <td class="good">Dinámico 95–750 MHz (Perfil 3D)</td>
+          </tr>
+          <tr>
+            <td>Memoria RAM Libre / Disponible</td>
+            <td class="bad">3.4 GiB disponible</td>
+            <td class="good">6.7 GiB disponible (ZSWAP LZ4)</td>
+          </tr>
+          <tr>
+            <td>Bloqueos de Kernel i915 (>10 ms)</td>
+            <td class="bad">131+ cuelgues registrados</td>
+            <td class="good">0 cuelgues (Paseo de cuadros fluido)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-  <section id="instalacion">
-    <h2>🚀 Instalación Rápida en 1 Paso</h2>
-    <div class="terminal">
-      <button class="copy-btn" onclick="navigator.clipboard.writeText('git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git && cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu && chmod +x install.sh && sudo ./install.sh')">Copiar</button>
-      <pre><span class="prompt">$ </span>git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git
+    <section id="instalacion-es">
+      <h2>🚀 Instalación Rápida en 1 Paso</h2>
+      <div class="terminal">
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git && cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu && chmod +x install.sh && sudo ./install.sh')">Copiar</button>
+        <pre><span class="prompt">$ </span>git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git
 <span class="prompt">$ </span>cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu
 <span class="prompt">$ </span>chmod +x install.sh
 <span class="prompt">$ </span>sudo ./install.sh</pre>
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+
+  <!-- ENGLISH CONTENT -->
+  <div class="lang-en">
+    <section id="story-en">
+      <h2>📖 The Story: From Early Linux to Reviving the Last Intel Flagship</h2>
+      <div class="story-box">
+        <blockquote>
+          "I come from the early days of Linux: starting years ago with <strong>Ubuntu 12.04</strong>, exploring Debian and Linux Mint, while alternating with Windows. After years of hard work and savings, I bought my dream machine: the <strong>16-inch MacBook Pro (Late 2019, Model A2141)</strong> with the Core i7-9750H and AMD Radeon Pro. At first, macOS felt like 'refined Linux'.<br><br>
+          But as the years went by, I watched the machine thermally self-destruct. Today, after more than <strong>5 years of real production use (586 battery cycles, 77.3% health remaining)</strong>, I returned to my roots on Ubuntu 24.04 LTS. When repasting the heatsink, I faced the bare-die reality: a microscopic lack of spring mounting pressure on the corner of <strong>Core 0</strong> sent that single core straight into <strong>100°C within 180 milliseconds</strong>.<br><br>
+          In macOS, Apple's only answer is triggering <code>kernel_task</code> and <strong>throttling all 6 cores down to 800 MHz</strong>. But on Linux, by combining kernel tracing and <strong>utilizing Artificial Intelligence as an engineering power tool</strong>, we designed an unprecedented fix: <strong>Per-Core Asymmetric Turbo (HWP)</strong> that protects Core 0 without opening the laptop and unleashes the healthy cores up to <strong>4.50 GHz</strong>.<br><br>
+          <strong>This machine literally flies now, my friends. I feel my MacBook Pro has been reborn.</strong>"
+        </blockquote>
+        <cite>— Juan Monzón (@mylnzon58)</cite>
+      </div>
+    </section>
+
+    <section id="problems-en">
+      <h2>🔍 Breakdown of the 8 Hardware & Kernel Bottlenecks Detected</h2>
+      <ul>
+        <li><strong>1. Bare-Die Thermal Asymmetry on Core 0:</strong> Under 90°C+ thermal cycles, bare-die silicon suffers from the thermal paste pump-out effect. Core 0 hit 100°C with just 22W while Core 4 stayed at 78°C (21°C delta across a single die), accumulating <strong>35,292 PROCHOT throttle events in 77 minutes</strong>.</li>
+        <li><strong>2. Apple T2 SMC Low-Pass Filter Latency (~900 ms):</strong> The T2 coprocessor applies an analog filter (<code>TC0E</code>) to cushion fan noise. By the time T2 detects elevated heat ~900 ms later, Core 0 has already throttled 100 times.</li>
+        <li><strong>3. Mismatched RAPL Limits (100W/125W vs 82W Heatsink):</strong> Firmware exposes PL1=100W and PL2=125W to a copper heatsink physically limited to <strong>82W combined cooling</strong>.</li>
+        <li><strong>4. AMD Radeon Pro VRAM Clamped at 95 MHz:</strong> The default rule <code>power_dpm_force_performance_level="low"</code> locked GDDR6 memory to 95 MHz, crippling display pipeline throughput on external displays while still pulling 18W idle.</li>
+        <li><strong>5. Intel i915 Disconnected Connector Polling Stalls:</strong> The i915 driver polled unassigned display ports every few seconds, stalling kernel workqueues for >10 ms (<code>output_poll_execute hogged CPU >10000us 131 times</code>).</li>
+        <li><strong>6. NVMe Single-Queue Bottleneck & Dormant zswap:</strong> Paging to a disk <code>/swapfile</code> over the T2's single hardware NVMe queue produced <strong>17.3 million I/O pressure stalls</strong>.</li>
+        <li><strong>7. Orphaned Background Processes:</strong> A lingering Gradle daemon (PID 8473, JDK 17) continuously consumed 1.43 GB RAM and 15% CPU at idle.</li>
+        <li><strong>8. Battery Sag on 90W Power Supplies:</strong> During combined load spikes, 90W third-party adapters could not supply 100W+, causing the SMC to draw up to -1.93 A from the battery while plugged in.</li>
+      </ul>
+    </section>
+
+    <section id="solution-en">
+      <h2>⚡ The Architecture: Per-Core Asymmetric HWP Turbo</h2>
+      <p>Rather than applying a crude global frequency cap, we configure Linux <code>intel_pstate</code> Speed Shift per core:</p>
+      <ul>
+        <li><strong>Healthy Cores (Core 4 & Core 5):</strong> 100% unlocked to factory maximum of <strong>4.50 GHz</strong> (balance_performance).</li>
+        <li><strong>Mid-Die Cores (Core 1 & Core 2):</strong> High-efficiency multi-threading at <strong>4.20 GHz</strong> (balance_performance).</li>
+        <li><strong>Transition Core 3:</strong> Tuned at <strong>3.70 GHz</strong> (balance_power).</li>
+        <li><strong>Protected Core 0:</strong> Clamped at <strong>3.40 GHz</strong> (balance_power), keeping it below 1.25V and completely preventing PROCHOT triggers.</li>
+        <li><strong>Calibrated RAPL Limits:</strong> 52W sustained (exceeds Intel factory 45W TDP) / 65W burst.</li>
+        <li><strong>Hardware TCC Offset at 97°C:</strong> Microsecond-level clock modulation before emergency hard cuts.</li>
+        <li><strong>AMD GPU Dynamic Auto + 3D Full Screen Mode:</strong> Immediate clock scaling up to 750 MHz VRAM and 1250 MHz Core across dual displays.</li>
+        <li><strong>In-RAM Compressed Swap (ZSWAP + LZ4):</strong> Zero NVMe disk stalls.</li>
+      </ul>
+    </section>
+
+    <section id="benchmarks-en">
+      <h2>📊 Telemetry Comparison Matrix: Before vs. After</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Evaluated Metric</th>
+            <th>Stock Factory State</th>
+            <th>With Asymmetric Tuning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Idle CPU Power (PCPT)</td>
+            <td class="bad">18.88W – 26.05W</td>
+            <td class="good">4.10W</td>
+          </tr>
+          <tr>
+            <td>Idle Core Temperatures</td>
+            <td class="bad">74°C – 91°C</td>
+            <td class="good">65°C – 67°C</td>
+          </tr>
+          <tr>
+            <td>Heavy Burst Load Behavior</td>
+            <td class="bad">Core 0 spikes to 100°C in 180 ms</td>
+            <td class="good">Core 4/5 boost to 4.5 GHz; Core 0 stays at 74°C</td>
+          </tr>
+          <tr>
+            <td>PROCHOT Throttle Events</td>
+            <td class="bad">35,292 per 77 minutes</td>
+            <td class="good">0 events (Rock Solid Stability)</td>
+          </tr>
+          <tr>
+            <td>AMD GPU VRAM Clock</td>
+            <td class="bad">Clamped at 95 MHz (low)</td>
+            <td class="good">Dynamic 95–750 MHz (Full 3D profile)</td>
+          </tr>
+          <tr>
+            <td>Available System RAM</td>
+            <td class="bad">3.4 GiB available</td>
+            <td class="good">6.7 GiB available (ZSWAP LZ4)</td>
+          </tr>
+          <tr>
+            <td>Kernel Workqueue Stalls (>10 ms)</td>
+            <td class="bad">131+ stalls logged</td>
+            <td class="good">0 stalls (Smooth Frame Pacing)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="install-en">
+      <h2>🚀 Quick 1-Step Installation</h2>
+      <div class="terminal">
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git && cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu && chmod +x install.sh && sudo ./install.sh')">Copy</button>
+        <pre><span class="prompt">$ </span>git clone https://github.com/mylnzon58/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu.git
+<span class="prompt">$ </span>cd t2-macbook-pro-16-1-thermal-performance-fix-ubuntu
+<span class="prompt">$ </span>chmod +x install.sh
+<span class="prompt">$ </span>sudo ./install.sh</pre>
+      </div>
+    </section>
+  </div>
 
 </main>
 
 <footer>
   <div class="container">
-    <p>Desarrollado con dedicación técnica por <strong>Juan Monzón (@mylnzon58)</strong>. Distribuido bajo Licencia MIT.</p>
-    <p>Si este fix devolvió a la vida tu MacBook Pro, apoya el proyecto invitándome un café en <a href="https://tecito.app/juanjoclassic" style="color:var(--accent-orange);">tecito.app/juanjoclassic</a>.</p>
+    <p class="lang-es">Desarrollado con dedicación técnica por <strong>Juan Monzón (@mylnzon58)</strong>. Distribuido bajo Licencia MIT.</p>
+    <p class="lang-en">Engineered with technical rigor by <strong>Juan Monzón (@mylnzon58)</strong>. Distributed under MIT License.</p>
+    <p><a href="https://tecito.app/juanjoclassic" target="_blank" style="color:var(--accent-orange);">☕ tecito.app/juanjoclassic</a></p>
   </div>
 </footer>
+
+<script>
+  function setLang(lang) {
+    if (lang === 'en') {
+      document.body.classList.add('is-en');
+      document.getElementById('btn-en').classList.add('active');
+      document.getElementById('btn-es').classList.remove('active');
+    } else {
+      document.body.classList.remove('is-en');
+      document.getElementById('btn-es').classList.add('active');
+      document.getElementById('btn-en').classList.remove('active');
+    }
+  }
+</script>
 
 </body>
 </html>
