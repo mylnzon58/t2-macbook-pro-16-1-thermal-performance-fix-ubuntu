@@ -1,7 +1,7 @@
 #!/bin/bash
-# 1. Potencia alta sin descontrol: 52W sostenidos (superior a los 45W TDP de fabrica) y 65W pico
+# 1. Potencia alta sin descontrol: 45W sostenidos (superior a los 45W TDP de fabrica) y 65W pico
 if [ -d /sys/class/powercap/intel-rapl:0 ]; then
-    echo 52000000 > /sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw 2>/dev/null || true
+    echo 45000000 > /sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw 2>/dev/null || true
     echo 65000000 > /sys/class/powercap/intel-rapl:0/constraint_1_power_limit_uw 2>/dev/null || true
 fi
 
