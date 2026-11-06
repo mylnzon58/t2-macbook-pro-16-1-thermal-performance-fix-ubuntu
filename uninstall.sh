@@ -10,9 +10,10 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "[*] Deshabilitando y eliminando servicio systemd..."
+echo "[*] Deshabilitando y eliminando servicio systemd y sleep hook..."
 systemctl disable --now macbook-a2141-tuning.service 2>/dev/null || true
 rm -f /etc/systemd/system/macbook-a2141-tuning.service
+rm -f /lib/systemd/system-sleep/macbook-a2141-tuning-sleep
 rm -f /usr/local/sbin/macbook-a2141-tuning.sh
 systemctl daemon-reload
 

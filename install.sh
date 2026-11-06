@@ -22,15 +22,19 @@ cp "$SCRIPT_DIR/config/macbook-a2141-tuning.service" /etc/systemd/system/macbook
 systemctl daemon-reload
 systemctl enable --now macbook-a2141-tuning.service
 
-echo "[+] 3. Configurando optimización de memoria (swappiness=15)..."
+echo "[+] 3. Configurando gancho post-suspensión para persistencia al despertar..."
+cp "$SCRIPT_DIR/config/macbook-a2141-tuning-sleep" /lib/systemd/system-sleep/macbook-a2141-tuning-sleep
+chmod +x /lib/systemd/system-sleep/macbook-a2141-tuning-sleep
+
+echo "[+] 4. Configurando optimización de memoria (swappiness=15)..."
 cp "$SCRIPT_DIR/config/99-a2141-memory.conf" /etc/sysctl.d/99-a2141-memory.conf
 sysctl -p /etc/sysctl.d/99-a2141-memory.conf
 
-echo "[+] 4. Configurando regla udev para AMD Radeon Pro..."
-cp "$SCRIPT_DIR/config/30-amdgpu-pm.rules" /etc/udev/rules.d/30-amdgpu-pm.rules
+echo "[+] 5. Limpiando reglas udev redundantes..."
+rm -f /etc/udev/rules.d/30-amdgpu-pm.rules
 udevadm control --reload-rules || true
 
-echo "[+] 5. Ejecutando sintonización en vivo..."
+echo "[+] 6. Ejecutando sintonización en vivo..."
 /usr/local/sbin/macbook-a2141-tuning.sh
 
 echo "=========================================================================="

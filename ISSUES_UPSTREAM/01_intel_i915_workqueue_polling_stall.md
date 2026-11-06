@@ -34,3 +34,6 @@ done
 ```
 
 Proposed integration: This could be packaged as a default udev or kernel module parameter workaround for dual-GPU T2 models in `t2-ubuntu-repo`.
+
+## Sleep/Wake (Suspend/Resume) Persistence Note
+When the machine suspends (S3/s2idle) and resumes, the DRM subsystem resets connector states upon wake, re-enabling the polling loop. To keep disconnected ports silenced across sleep cycles, integrate a `/lib/systemd/system-sleep/` hook that re-applies `echo off` on `post` resume.

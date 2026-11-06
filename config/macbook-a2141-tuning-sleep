@@ -1,0 +1,8 @@
+#!/bin/sh
+# /lib/systemd/system-sleep/macbook-a2141-tuning-sleep
+# Re-applies per-core HWP tuning, AMD GPU DPM profile, and i915 DRM force-off on resume
+case "$1" in
+    post)
+        /usr/local/sbin/macbook-a2141-tuning.sh
+        ;;
+esac

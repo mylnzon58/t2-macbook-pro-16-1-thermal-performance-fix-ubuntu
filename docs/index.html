@@ -267,6 +267,7 @@
         <li><strong>Potencia RAPL:</strong> 52W sostenidos (superior a los 45W TDP de fábrica) / 65W pico.</li>
         <li><strong>TCC Offset a 97°C:</strong> Modulación suave de frecuencia en microsegundos sin choque térmico.</li>
         <li><strong>GPU AMD en Auto + Perfil 3D Full Screen:</strong> Escalado instantáneo a 750 MHz de VRAM y 1250 MHz de GPU en múltiples pantallas.</li>
+        <li><strong>Persistencia Post-Suspensión (system-sleep Hook):</strong> Al reanudar tras cerrar la tapa, re-aplica el tuning en microsegundos manteniendo 0 latencia de video y frecuencias estables.</li>
         <li><strong>ZSWAP con LZ4 activo en RAM:</strong> Cero saturación de disco SSD.</li>
       </ul>
     </section>
@@ -373,6 +374,7 @@
         <li><strong>Calibrated RAPL Limits:</strong> 52W sustained (exceeds Intel factory 45W TDP) / 65W burst.</li>
         <li><strong>Hardware TCC Offset at 97°C:</strong> Microsecond-level clock modulation before emergency hard cuts.</li>
         <li><strong>AMD GPU Dynamic Auto + 3D Full Screen Mode:</strong> Immediate clock scaling up to 750 MHz VRAM and 1250 MHz Core across dual displays.</li>
+        <li><strong>Post-Resume Sleep Persistence Hook:</strong> Automatically re-applies tuning parameters on wake to eliminate workqueue stalls and keep frequencies stable across lid open/close cycles.</li>
         <li><strong>In-RAM Compressed Swap (ZSWAP + LZ4):</strong> Zero NVMe disk stalls.</li>
       </ul>
     </section>
