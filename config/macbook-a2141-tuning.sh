@@ -70,3 +70,10 @@ if [ -d /sys/module/zswap/parameters ]; then
     echo Y > /sys/module/zswap/parameters/enabled 2>/dev/null || true
 fi
 sysctl -w vm.swappiness=15 >/dev/null 2>&1 || true
+
+# 7. Enlace interno Apple T2 CDC-NCM para bridgeOS / Touch ID
+if [ -d /sys/class/net/t2_ncm ]; then
+    ip link set dev t2_ncm addrgenmode eui64 2>/dev/null || true
+    ip link set dev t2_ncm up 2>/dev/null || true
+    ip -6 addr add fe80::aede:48ff:fe00:1122/64 dev t2_ncm 2>/dev/null || true
+fi
