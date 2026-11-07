@@ -3,7 +3,7 @@ set -e
 
 echo "=========================================================================="
 echo " MacBook Pro 16,1 (A2141) Thermal & Performance Kernel Tuning Installer"
-echo " Author: Juan Monzón (@mylnzon58)"
+echo " Author: Juan José Monzón (@mylnzon58)"
 echo "=========================================================================="
 
 if [ "$EUID" -ne 0 ]; then
@@ -43,7 +43,7 @@ echo " Tu MacBook Pro 16,1 ahora corre con Turbo Asimétrico por Núcleo (4.5 GH
 echo " y el Core 0 protegido contra thermal throttling."
 echo "--------------------------------------------------------------------------"
 echo " 💙 Mensaje del autor / Author's note:"
-echo " Soy Juan Monzón (@mylnzon58), desarrollador independiente y padre de dos niños."
+echo " Soy Juan José Monzón (@mylnzon58), desarrollador independiente argentino y padre de una niña y un niño pequeño."
 echo " Intento vivir cada día de lo que amo creando herramientas abiertas para la comunidad."
 echo ""
 echo " ⭐ Si esta optimización enfrió tu Mac y mejoró su rendimiento en Linux, déjame una estrella en GitHub:"
