@@ -75,16 +75,21 @@ En macOS, esto significaba la muerte del rendimiento: Apple dispara `kernel_task
 
 ---
 
-### La Solución: Arquitectura Asimétrica por Núcleo (Per-Core HWP)
+### La Solución: Demonio Guardián Dinámico y Arquitectura Asimétrica por Núcleo (Per-Core HWP)
 
-* **Núcleos Sanos (Core 4 y Core 5) al 100% (4.50 GHz):** Los núcleos con contacto térmico perfecto absorben las cargas de alta demanda sin límites.
-* **Núcleos Medios (Core 1 y Core 2) a 4.20 GHz:** Rendimiento sostenido sin disparar consumo.
-* **Core 0 Protegido a 3.40 GHz:** Se fija por debajo del umbral de alto voltaje (`1.25V`), evitando que caliente y suprimiendo el estrangulamiento de todo el procesador.
-* **Límites RAPL Calibrados (52W sostenidos / 65W pico):** Supera los 45W nominales de Intel, asegurando potencia continua sin saturar el heatpipe de 82W.
-* **TCC Offset a 97°C:** El silicio modula frecuencias en microsegundos si roza los 97°C, eliminando los cortes bruscos de 100°C.
+> 📘 **Documento Técnico Completo:** Puedes leer el análisis forense y la auditoría de telemetría en vivo en [MACBOOK_A2141_DIAGNOSTIC_AND_SOLUTIONS.md](MACBOOK_A2141_DIAGNOSTIC_AND_SOLUTIONS.md).
+
+* **Demonio Guardián Dinámico en Segundo Plano (`macbook-a2141-tuning-daemon.sh`):** Servicio continuo systemd que vigila cada 2 segundos sin consumo apreciable de CPU (`0.00%` overhead), resolviendo el reinicio silencioso a 100W que el firmware T2 imponía tras el arranque.
+* **Bloqueo Activo de Límites RAPL (45W Sostenidos / 65W Pico):** Evita la saturación térmica del chasis bare-die, fijando la potencia sostenida al límite térmico óptimo de evacuación de las turbinas duales (5000+ RPM).
+* **Conmutación Inteligente con Histéresis Térmica:**
+  * **Modo Ráfaga / Mononúcleo (< 74°C):** Cores 4 y 5 a 4.50 GHz, Cores 1 y 2 a 4.20 GHz, Core 3 a 3.70 GHz y Core 0 protegido a 3.40 GHz. Máxima agilidad para navegación y apertura de aplicaciones.
+  * **Modo Carga Pesada Multihilo (> 84°C):** Cores 4 y 5 a 3.60 GHz, Cores 1 y 2 a 3.50 GHz, Core 3 a 3.40 GHz y Core 0 a 3.10 GHz. Mantiene un promedio de ~3.40 GHz sincronizado sin caídas bruscas a 800 MHz ni migraciones de hilos.
+* **Topología Real 6C/12T Respetada:** Sincronización estricta por pares de silicio físico y hermano lógico SMT (Core 0: cpu0/cpu6, Core 1: cpu1/cpu7, Core 2: cpu2/cpu8, Core 3: cpu3/cpu9, Core 4: cpu4/cpu10, Core 5: cpu5/cpu11).
+* **Solución al "Ping-Pong" de Procesos:** Al erradicar los picos a 100°C que disparaban PROCHOT en microsegundos, el planificador del kernel (EEVDF) ya no percibe colapsos de capacidad en los núcleos, manteniendo los procesos estables en sus ALUs sin vaciados súbitos ni oscilaciones.
+* **TCC Offset a 97°C:** Freno suave por silicio a nivel MSR antes de tocar el muro de los 100°C.
 * **GPU AMD en modo Auto + Perfil 3D Full Screen:** Escala dinámicamente hasta 750 MHz de VRAM y 1250 MHz de núcleo para mover múltiples monitores con fluidez total.
 * **Desactivación de Sondeo HPD en i915:** 0 micro-bloqueos en el kernel.
-* **Persistencia Post-Suspensión (Hook en system-sleep):** Al despertar la Mac tras cerrar la tapa, un gancho automático en `/lib/systemd/system-sleep/` re-aplica el tuning en microsegundos, asegurando 0 latencia y frecuencias intactas.
+* **Persistencia Post-Suspensión (Hook en system-sleep):** Al despertar la Mac tras cerrar la tapa, un gancho automático en `/lib/systemd/system-sleep/` re-aplica el tuning en microsegundos y reinicia el demonio guardián.
 * **ZSWAP con compresión LZ4 y Swappiness 15:** Compresión ultrarrápida en RAM evitando el SSD.
 
 ---
@@ -172,16 +177,21 @@ In macOS, this is a death sentence: Apple triggers `kernel_task` and **throttles
 
 ---
 
-### The Architecture: Per-Core Asymmetric HWP Turbo
+### The Architecture: Dynamic Thermal Watchdog Daemon & Per-Core Asymmetric HWP Turbo
 
-* **Healthy Cores (Core 4 & Core 5) at 100% Factory Turbo (4.50 GHz):** Optimal contact cores handle heavy single- and dual-threaded workloads without limits.
-* **Mid-Die Cores (Core 1 & Core 2) at 4.20 GHz:** High-efficiency sustained throughput.
-* **Protected Core 0 at 3.40 GHz:** Clamped below the 1.25V high-voltage ringer, eliminating package-wide PROCHOT triggers.
-* **Calibrated RAPL Limits (52W Sustained / 65W Burst):** Outperforms Intel factory 45W TDP while preventing 82W heatpipe saturation.
+> 📘 **Full Technical Deep-Dive:** Read the comprehensive live telemetry audit and architecture breakdown in [MACBOOK_A2141_DIAGNOSTIC_AND_SOLUTIONS.md](MACBOOK_A2141_DIAGNOSTIC_AND_SOLUTIONS.md).
+
+* **Active Background Watchdog Daemon (`macbook-a2141-tuning-daemon.sh`):** Continuous systemd service monitoring every 2 seconds (`0.00%` CPU overhead), preventing silent 100W resets by Apple T2 firmware and battery power events.
+* **Continuous RAPL Power Lock (45W Sustained / 65W Burst):** Restricts long-term heat generation to exactly what the dual cooling fans can sustainably exhaust under Linux, avoiding heatpipe saturation.
+* **Dynamic Dual-Profile Switching with Thermal Hysteresis:**
+  * **Burst / Single-Core Profile (< 74°C):** Cores 4 & 5 at 4.50 GHz, Cores 1 & 2 at 4.20 GHz, Core 3 at 3.70 GHz, Core 0 at 3.40 GHz. Maximum responsiveness for interactive workloads and compiling bursts.
+  * **Heavy Multithread Load Profile (> 84°C):** Cores 4 & 5 at 3.60 GHz, Cores 1 & 2 at 3.50 GHz, Core 3 at 3.40 GHz, Core 0 at 3.10 GHz. Holds ~3.40 GHz all-core without thermal throttling drops to 800 MHz.
+* **True 6-Core / 12-Thread Topology Synchronization:** Strict pairing of physical cores and logical SMT thread siblings (Core 0: cpu0/cpu6, Core 1: cpu1/cpu7, Core 2: cpu2/cpu8, Core 3: cpu3/cpu9, Core 4: cpu4/cpu10, Core 5: cpu5/cpu11).
+* **Elimination of Process "Ping-Pong" & Core Dumps:** By preventing sudden 100°C spikes that triggered hardware PROCHOT, the Linux kernel scheduler (EEVDF) no longer witnesses core capacity collapse, ending erratic thread bouncing and sudden core emptying.
 * **Hardware TCC Offset at 97°C:** Sub-millisecond frequency modulation in silicon before emergency throttling occurs.
 * **AMD GPU Dynamic Auto + 3D Full Screen Mode:** Instant scaling up to 750 MHz VRAM and 1250 MHz Core across multiple monitors.
 * **i915 Disconnected Polling Disabled:** 0 kernel workqueue stalls.
-* **Post-Resume Sleep Persistence Hook:** Linux DRM resets connector states upon waking from suspend. A dedicated `/lib/systemd/system-sleep/` hook re-applies all tuning parameters instantly on wake, ensuring permanent low-latency performance.
+* **Post-Resume Sleep Persistence Hook:** Linux DRM resets connector states upon waking from suspend. A dedicated `/lib/systemd/system-sleep/` hook re-applies all tuning parameters instantly on wake and restarts the watchdog daemon.
 * **In-RAM Compressed Swap (ZSWAP + LZ4):** Eliminates disk I/O bottlenecks.
 
 ---

@@ -13,11 +13,13 @@ fi
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-echo "[+] 1. Copiando script de optimización a /usr/local/sbin/..."
+echo "[+] 1. Copiando scripts de optimización a /usr/local/sbin/..."
 cp "$SCRIPT_DIR/config/macbook-a2141-tuning.sh" /usr/local/sbin/macbook-a2141-tuning.sh
 chmod +x /usr/local/sbin/macbook-a2141-tuning.sh
+cp "$SCRIPT_DIR/config/macbook-a2141-tuning-daemon.sh" /usr/local/sbin/macbook-a2141-tuning-daemon.sh
+chmod +x /usr/local/sbin/macbook-a2141-tuning-daemon.sh
 
-echo "[+] 2. Configurando servicio persistente systemd..."
+echo "[+] 2. Configurando servicio guardián dinámico systemd..."
 cp "$SCRIPT_DIR/config/macbook-a2141-tuning.service" /etc/systemd/system/macbook-a2141-tuning.service
 systemctl daemon-reload
 systemctl enable --now macbook-a2141-tuning.service

@@ -4,6 +4,7 @@
 case "$1" in
     post)
         /usr/local/sbin/macbook-a2141-tuning.sh
+        systemctl try-restart macbook-a2141-tuning.service 2>/dev/null || true
         ;;
 esac
 
