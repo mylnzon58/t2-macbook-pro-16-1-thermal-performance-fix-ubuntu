@@ -9,13 +9,18 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Juan_Monz%C3%B3n-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/juan-m-97b85681/)
 [![Instagram](https://img.shields.io/badge/Instagram-%40juanjoclassic-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/juanjoclassic/)
 [![Invitame un Tecito](https://img.shields.io/badge/%E2%98%95_Donar_un_Tecito-tecito.app%2Fjuanjoclassic-FF813F?style=flat&logo=buy-me-a-coffee&logoColor=white)](https://tecito.app/juanjoclassic)
+[![Sponsor on Patreon](https://img.shields.io/badge/Patreon-Planes_para_Sponsors-FF424D?style=flat&logo=patreon&logoColor=white)](https://www.patreon.com/JuanjoClassic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **Author & Maintainer:** **[Juan Monzón (@mylnzon58)](https://www.linkedin.com/in/juan-m-97b85681/)** — *AI Product | Full Stack Developer | Digital Products & Growth* (Argentina)  
 > ☕ **¿Te sirvió esta solución?** Si este fix evitó que tu MacBook Pro 16,1 se congele por thermal throttling en Linux y liberó la potencia real de tu CPU y GPU, puedes apoyar este desarrollo invitándome un Tecito en **[tecito.app/juanjoclassic](https://tecito.app/juanjoclassic)**, dejando una **Star ⭐** en el repo y siguiéndome en **[GitHub](https://github.com/mylnzon58)** y **[LinkedIn](https://www.linkedin.com/in/juan-m-97b85681/)**.  
-> ☕ **Did this fix save your day?** If this tuning stopped your 16" MacBook Pro from thermal throttling under Linux and unlocked true per-core performance across dual screens, feel free to support my work by buying me a Tecito at **[tecito.app/juanjoclassic](https://tecito.app/juanjoclassic)**, **Starring ⭐** this repository, and connecting on **[LinkedIn](https://www.linkedin.com/in/juan-m-97b85681/)**.
+> ☕ **Did this fix save your day?** If this tuning stopped your 16" MacBook Pro from thermal throttling under Linux and unlocked true per-core performance across dual screens, feel free to support my work by buying me a Tecito at **[tecito.app/juanjoclassic](https://tecito.app/juanjoclassic)**, **Starring ⭐** this repository, and connecting on **[LinkedIn](https://www.linkedin.com/in/juan-m-97b85681/)**.  
+> 🧡 **Planes para Sponsors en Patreon:** Cuento con planes de patrocinio mensual en **[patreon.com/JuanjoClassic](https://www.patreon.com/JuanjoClassic)** para apoyar el desarrollo y mantenimiento continuo de estas optimizaciones.
 
 <p align="left">
+  <a href="https://www.patreon.com/JuanjoClassic" target="_blank">
+    <img src="https://img.shields.io/badge/Patreon-Planes_para_Sponsors-FF424D?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon - Planes para Sponsors" />
+  </a>
   <a href="https://tecito.app/juanjoclassic" target="_blank">
     <img src="https://img.shields.io/badge/%E2%98%95_Invitame_un_Tecito_/_Donate-tecito.app%2Fjuanjoclassic-FF813F?style=for-the-badge&logoColor=white" alt="Donar un Tecito - tecito.app/juanjoclassic" />
   </a>
