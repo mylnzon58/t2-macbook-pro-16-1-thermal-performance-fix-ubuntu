@@ -42,9 +42,11 @@ init_hardware() {
 
     # Apple T2 CDC-NCM link
     if [ -d /sys/class/net/t2_ncm ]; then
+        sysctl -w net.ipv6.conf.t2_ncm.accept_dad=0 >/dev/null 2>&1 || true
         ip link set dev t2_ncm addrgenmode eui64 2>/dev/null || true
         ip link set dev t2_ncm up 2>/dev/null || true
-        ip -6 addr add fe80::aede:48ff:fe00:1122/64 dev t2_ncm 2>/dev/null || true
+        ip -6 addr replace fe80::aede:48ff:fe00:1122/64 dev t2_ncm nodad 2>/dev/null || \
+        ip -6 addr add fe80::aede:48ff:fe00:1122/64 dev t2_ncm nodad 2>/dev/null || true
     fi
 }
 
