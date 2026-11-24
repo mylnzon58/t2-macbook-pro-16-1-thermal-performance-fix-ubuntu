@@ -1,16 +1,15 @@
 # MacBook Pro 16,1 (2019, A2141) High-Performance Thermal & Kernel Tuning Fix for Ubuntu 24.04 LTS
 
-[![Ubuntu 24.04 LTS](assets/badges/ubuntu-24-04-lts-noble-e95420-badge-0eddb5.svg)](#)
-[![Linux Kernel T2](assets/badges/kernel-linux-t2-v7-x-00b4d8-badge-bb607d.svg)](#)
-[![Hardware](assets/badges/apple-t2-macbookpro16-1-a2141-111827-badge-40b160.svg)](#)
-[![Intel Core i7-9750H (6 Cores / 12 Threads)](assets/badges/cpu-intel-core-i7-9750h-6c-12t-0071c5-badge-e51282.svg)](#)
-[![AMD Radeon Pro](assets/badges/gpu-amd-radeon-pro-5300m-5500m-ed1c24-badge-b74f9a.svg)](#)
-[![Author](assets/badges/author-juan-monz-n-mylnzon58-10b981-badge-b4c2f7.svg)](https://github.com/mylnzon58)
-[![LinkedIn](assets/badges/linkedin-juan-monz-n-0a66c2-badge-e9a39f.svg)](https://www.linkedin.com/in/juan-m-97b85681/)
-[![Instagram](assets/badges/instagram-juanjoclassic-e4405f-badge-cb0a18.svg)](https://www.instagram.com/juanjoclassic/)
-[![Invitame un Tecito](assets/badges/donar-un-tecito-tecito-app-juanjoclassic-f-badge-19a818.svg)](https://tecito.app/juanjoclassic)
-[![Sponsor on Patreon](assets/badges/patreon-planes-para-sponsors-ff424d-badge-d934e2.svg)](https://www.patreon.com/JuanjoClassic)
-[![License: MIT](assets/badges/license-mit-blue-svg-badge-fd4321.svg)](LICENSE)
+[![Ubuntu 24.04 LTS](assets/badges/ubuntu-24-04-lts.svg)](#)
+[![Linux Kernel T2](assets/badges/kernel-t2.svg)](#)
+[![Apple T2](assets/badges/apple-a2141.svg)](#)
+[![CPU Intel](assets/badges/intel-9750h.svg)](#)
+[![AMD Radeon Pro](assets/badges/amd-radeon.svg)](#)
+[![Sitio Web](assets/badges/web-pages.svg)](https://mylnzon58.github.io/t2-macbook-pro-16-1-thermal-performance-fix-ubuntu/)
+[![Author](assets/badges/author-mylnzon58.svg)](https://github.com/mylnzon58)
+[![Donar un Tecito](assets/badges/tecito-flat.svg)](https://tecito.app/juanjoclassic)
+[![Sponsor on Patreon](assets/badges/patreon-flat.svg)](https://www.patreon.com/JuanjoClassic)
+[![License: MIT](assets/badges/license-mit.svg)](LICENSE)
 
 > **Author & Maintainer:** **[Juan Monzón (@mylnzon58)](https://www.linkedin.com/in/juan-m-97b85681/)** — *AI Product | Full Stack Developer | Digital Products & Growth* (Argentina)  
 > ☕ **¿Te sirvió esta solución?** Si este fix evitó que tu MacBook Pro 16,1 se congele por thermal throttling en Linux y liberó la potencia real de tu CPU y GPU, puedes apoyar este desarrollo invitándome un Tecito en **[tecito.app/juanjoclassic](https://tecito.app/juanjoclassic)**, dejando una **Star ⭐** en el repo y siguiéndome en **[GitHub](https://github.com/mylnzon58)** y **[LinkedIn](https://www.linkedin.com/in/juan-m-97b85681/)**.  
@@ -19,16 +18,16 @@
 
 <p align="left">
   <a href="https://www.patreon.com/JuanjoClassic" target="_blank">
-    <img src="assets/badges/patreon-planes-para-sponsors-ff424d-ftb-151c63.svg" alt="Patreon - Planes para Sponsors" />
+    <img src="assets/badges/patreon-sponsors-ftb.svg" height="28" alt="Patreon - Planes para Sponsors" />
   </a>
   <a href="https://tecito.app/juanjoclassic" target="_blank">
-    <img src="assets/badges/invitame-un-tecito-donate-tecito-app-juanj-ftb-9ce508.svg" alt="Donar un Tecito - tecito.app/juanjoclassic" />
+    <img src="assets/badges/tecito-donar-ftb.svg" height="28" alt="Donar un Tecito - tecito.app/juanjoclassic" />
   </a>
   <a href="https://www.linkedin.com/in/juan-m-97b85681/" target="_blank">
-    <img src="assets/badges/linkedin-juan-monz-n-0a66c2-ftb-1915bf.svg" alt="LinkedIn - Juan Monzón" />
+    <img src="assets/badges/linkedin-juan-monzon-ftb.svg" height="28" alt="LinkedIn - Juan Monzón" />
   </a>
   <a href="https://www.instagram.com/juanjoclassic/" target="_blank">
-    <img src="assets/badges/instagram-juanjoclassic-e4405f-ftb-dab03a.svg" alt="Instagram - @juanjoclassic" />
+    <img src="assets/badges/instagram-juanjoclassic-ftb.svg" height="28" alt="Instagram - @juanjoclassic" />
   </a>
 </p>
 
